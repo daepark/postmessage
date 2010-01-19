@@ -7,6 +7,7 @@
      /**
       * {
       *   window:  // window to postMessage to
+      *   type:    // message/event type ( type used for $.postMessage.bind )
       *   data:    // JSON data message
       *   success: // success handler
       *   error:   // error handler
@@ -51,15 +52,27 @@
      };
 
      pm.listeners = {};
+     pm.origin = null; /* set global origin */
      pm.bind = function(type, fn, origin) {
          var l = pm.listeners[type];
          if (!l) {
              l = pm.listeners[type] = [];
          }
-         l.push({callback:fn, origin:origin});
+         l.push({callback:fn, origin:origin || pm.origin});
+     };
+
+     pm.unbind = function(type) {
+       if (type) {
+         delete pm.listeners[type];
+       }
+       else {
+         pm.listeners = {};
+       }
      };
 
      pm.dispatch = function(e) {
+         console.log("$.postMessage.dispatch", e);
+
          try {
              var msg = JSON.parse(e.data);
          }
@@ -84,26 +97,36 @@
                  $.each(l, function(i,o) {
                      if (o.origin && e.origin !== o.origin) {
                          console.warn("$.postMessage event origin mismatch", e.origin, o.origin);
+                         if (msg.errback) {
+                           // notify post message errback
+                           $.postMessage({window: e.source, data: "$.postMessage origin mismatch", type: msg.errback});
+                         }
                          return;
                      }
                      try {
                          var r = o.callback(msg.data);
                          if (msg.callback) {
-                             // notify post message callback
-                             $.postMessage({data: r, type: msg.callback});
+                           $.postMessage({window: e.source, data: r, type: msg.callback});
                          }
                      }
                      catch (ex) {
                          if (msg.errback) {
-                             // notify post message errback
-                             $.postMessage({data: "" + ex, type: msg.errback});
+                           // notify post message errback
+                           $.postMessage({window: e.source, data: "" + ex, type: msg.errback});
                          }
                      }
                  });
-                 delete pm.listeners[msg.type];
+                 //delete pm.listeners[msg.type];
              }
          }
      };
+
+     if (window.addEventListener) {
+       window.addEventListener("message", pm.dispatch, false);
+     }
+     else if (window.attachEvent) {
+       window.attachEvent("onmessage", pm.dispatch);
+     }
 
      /**
       * http://www.JSON.org/json2.js
@@ -113,5 +136,3 @@
 
 
  })(jQuery);
-
-
