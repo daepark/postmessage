@@ -1,6 +1,7 @@
 (function($) {
 
      if (!("console" in window)) {
+         window.console = {};
          window.console.log = window.console.warn = window.console.error = window.console.debug = function(){};
      }
 
