@@ -37,7 +37,7 @@
       * }
       */
      pm.send = function(w, options) {
-         w = w.contentWindow || w;
+         var win = w.contentWindow || w;
          var o = $.extend({}, pm.defaults, options);
          var msg = {data:o.data, type:o.type};
          if (o.success) {
@@ -48,12 +48,12 @@
          }
 
          if (("postMessage" in window) && !o.hash) {
-             pm._bind(window);
-             w.postMessage(JSON.stringify(msg), o.origin || '*');
+             pm._bind();
+             win.postMessage(JSON.stringify(msg), o.origin || '*');
          }
          else {
-             pm.hash._bind(window);
-             pm.hash.send(w, o, msg);
+             pm.hash._bind();
+             pm.hash.send(win, o, msg);
          }
      };
 
@@ -61,16 +61,21 @@
      pm.bind = function(w, type, fn, origin, hash) {
          // TODO: assert w === window
          // you can only bind to current window
+         var win = w.contentWindow || w;
+         if (win !== window) {
+             console.warn("postmessage bind only allowed on current window");
+             return;
+         }
          if (("postMessage" in window) && !hash) {
-             pm._bind(w);
+             pm._bind();
          }
          else {
-             pm.hash._bind(w);
+             pm.hash._bind();
          }
-         var l = $(w).data("listeners.postmessage");
+         var l = $(document).data("listeners.postmessage");
          if (!l) {
              l = {};
-             $(w).data("listeners.postmessage", l);
+             $(document).data("listeners.postmessage", l);
          }
          var fns = l[type];
          if (!fns) {
@@ -81,7 +86,12 @@
      };
 
      pm.unbind = function(w, type, fn) {
-         var l = $(w).data("listeners.postmessage");
+         var win = w.contentWindow || w;
+         if (win !== window) {
+             console.warn("postmessage unbind only allowed on current window");
+             return;
+         }
+         var l = $(document).data("listeners.postmessage");
          if (l) {
              if (type) {
                  if (fn) {
@@ -131,26 +141,26 @@
 
 
      pm._callback = function(fn) {
-         var cbs = $(window).data("callbacks.postmessage");
+         var cbs = $(document).data("callbacks.postmessage");
          if (!cbs) {
              cbs = {};
-             $(window).data("callbacks.postmessage", cbs);
+             $(document).data("callbacks.postmessage", cbs);
          }
          var r = pm._random();
          cbs[r] = fn;
          return r;
      };
 
-     pm._bind = function(w) {
+     pm._bind = function() {
          // are we already listening to message events on this w?
-         if (!$(w).data("listening.postmessage")) {
-             if (w.addEventListener) {
-                 w.addEventListener("message", pm._dispatch, false);
+         if (!$(document).data("listening.postmessage")) {
+             if (window.addEventListener) {
+                 window.addEventListener("message", pm._dispatch, false);
              }
-             else if (w.attachEvent) {
-                 w.attachEvent("onmessage", pm._dispatch);
+             else if (window.attachEvent) {
+                 window.attachEvent("onmessage", pm._dispatch);
              }
-             $(w).data("listening.postmessage", 1);
+             $(document).data("listening.postmessage", 1);
          }
      };
 
@@ -169,13 +179,13 @@
              return;
          }
 
-         var cbs = $(this).data("callbacks.postmessage") || {};
+         var cbs = $(document).data("callbacks.postmessage") || {};
          var cb = cbs[msg.type];
          if (cb) {
              cb(msg.data);
          }
          else {
-             var l = $(this).data("listeners.postmessage") || {};
+             var l = $(document).data("listeners.postmessage") || {};
              var fns = l[msg.type] || [];
              $.each(fns, function(i,o) {
                         if (o.origin && e.origin !== o.origin) {
@@ -206,6 +216,12 @@
          }
      };
 
+     pm.log = function(msg) {
+         $(function() {
+               $(document.body).append("<pre>POSTMESSAGE LOG: "+msg+"</pre>");
+           });
+     };
+
 
      pm.hash = {
 
@@ -220,11 +236,11 @@
              var source_url = pm.hash._url(window.location.href);
              var source_window = null;
 
-             if (window === target_window.parent) {
+             if (window == target_window.parent) {
                  source_window = "parent";
              }
              else {
-                 source_window = window.name;
+                 source_window = window.frameElement ? window.frameElement.name : window.name;
              }
 
              if (source_window == null) {
@@ -241,7 +257,7 @@
                  postmessage: msg
              };
 
-             pm.hash._bind(window);
+             //pm.hash._bind(window);
 
              var hash_id = "#x-postmessage-id=" + pm._random();
              target_window.location = target_url + hash_id + encodeURIComponent(JSON.stringify(hashmessage));
@@ -250,20 +266,28 @@
          _regex: /^\#x\-postmessage\-id\=(\w{32})/,
          _regex_len: "#x-postmessage-id=".length + 32,
 
-         _bind: function(w) {
+         _bind: function() {
              // are we already listening to message events on this w?
-             if (!$(w).data("polling.postmessage")) {
-                 $(w).data("polling.postmessage", setInterval(function() {
-                                                                  var hash = "" + window.location.hash;
-                                                                  var m = pm.hash._regex.exec(hash);
-                                                                  if (m) {
-                                                                      var id = m[1];
-                                                                      if (pm.hash._last !== id) {
-                                                                          pm.hash._last = id;
-                                                                          pm.hash._dispatch(hash.substring(pm.hash._regex_len));
-                                                                      }
-                                                                  }
-                                                              }, 200));
+             if ($(document).data("polling.postmessage") !=  1) {
+                 $(document).data("polling.postmessage", 1);
+                 //$.postmessage.log("polling.postmessage START");
+
+                 setInterval(function() {
+                                 var hash = "" + window.location.hash;
+                                 var m = $.postmessage.hash._regex.exec(hash);
+                                 if (m) {
+                                     var id = m[1];
+                                     if ($.postmessage.hash._last !== id) {
+                                         $.postmessage.hash._last = id;
+                                         $.postmessage.hash._dispatch(hash.substring($.postmessage.hash._regex_len));
+                                     }
+                                 }
+                             }, 200);
+
+
+             }
+             else {
+                 //$.postmessage.log("polling.postmessage ALREADY STARTED");
              }
          },
 
@@ -288,22 +312,20 @@
              }
 
              var msg = hash.postmessage;
-             var cbs = $(window).data("callbacks.postmessage") || {};
+             var cbs = $(document).data("callbacks.postmessage") || {};
              var cb = cbs[msg.type];
              if (cb) {
                  cb(msg.data);
              }
              else {
-                 var source;
+                 var source_window;
                  if (hash.source.name === "parent") {
-                     source = window.parent;
+                     source_window = window.parent;
                  }
                  else {
-                     source = window.frames[hash.source.name];
+                     source_window = window.frames[hash.source.name];
                  }
-
-
-                 var l = $(window).data("listeners.postmessage") || {};
+                 var l = $(document).data("listeners.postmessage") || {};
                  var fns = l[msg.type] || [];
 
                  $.each(fns, function(i,o) {
@@ -317,7 +339,7 @@
                                             message: "postmessage origin mismatch",
                                             origin: [origin, o.origin]
                                         };
-                                        pm.send(source, {data: error, type: msg.errback, hash:true, url:hash.source.url});
+                                        $.postmessage.send(source_window, {data: error, type: msg.errback, hash:true, url:hash.source.url});
                                     }
                                     return;
                                 }
@@ -325,13 +347,13 @@
                             try {
                                 var r = o.fn(msg.data);
                                 if (msg.callback) {
-                                    pm.send(source, {data: r, type: msg.callback, hash:true, url:hash.source.url});
+                                    $.postmessage.send(source_window, {data: r, type: msg.callback, hash:true, url:hash.source.url});
                                 }
                             }
                             catch (ex) {
                                 if (msg.errback) {
                                     // notify post message errback
-                                    pm.send(source, {data: ex, type: msg.errback, hash:true, url:hash.source.url});
+                                    $.postmessage.send(source_window, {data: ex, type: msg.errback, hash:true, url:hash.source.url});
                                 }
                             }
                         });
@@ -340,7 +362,7 @@
 
          _url: function(url) {
              // url minus hash part
-             return url.replace(/#.*$/, "");
+             return (""+url).replace(/#.*$/, "");
          }
 
      };
