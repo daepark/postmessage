@@ -47,7 +47,7 @@
              msg.errback = pm._callback(o.error);
          }
 
-         if (window.postMessage && !o.hash) {
+         if (("postMessage" in window) && !o.hash) {
              pm._bind(window);
              w.postMessage(JSON.stringify(msg), o.origin || '*');
          }
@@ -61,7 +61,7 @@
      pm.bind = function(w, type, fn, origin, hash) {
          // TODO: assert w === window
          // you can only bind to current window
-         if (window.postMessage && !hash) {
+         if (("postMessage" in window) && !hash) {
              pm._bind(w);
          }
          else {
