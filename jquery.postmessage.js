@@ -5,40 +5,29 @@
          window.console.log = window.console.warn = window.console.error = window.console.debug = function(){};
      }
 
-     $.fn.postmessage = function(options /* ["bind", fn, origin]*/) {
-         var args = Array.prototype.slice.call(arguments);
-         var method = "send";
-         if (args.length > 1) {
-             method = args.shift();
-         }
-         return this.each(function() {
-                              $.postmessage.apply(null, [method, this].concat(args));
-                          });
+     $.fn.postmessage = function() {
+         console.log("usage: \nto send:    $.postmessage(options)\nto receive: $.postmessage.bind(type, fn, [origin])");
+         return this;
      };
 
-     var pm = $.postmessage = function(method, w) {
-         if (method in $.postmessage) {
-             var args = Array.prototype.slice.call(arguments);
-             args.shift();
-             pm[method].apply(null, args);
-         }
-         else {
-             console.warn("postmessage method not supported", method);
-         }
+     var pm = $.postmessage = $.pm = function(options) {
+         pm.send(options);
      };
 
      /**
-      * options :
-      * {
-      *   type:    // message type ( type used for $.postmessage.bind )
-      *   data:    // JSON data message
-      *   success: // success handler
-      *   error:   // error handler
-      * }
+      * options - @see $.postmessage.defaults
       */
-     pm.send = function(w, options) {
-         var win = pm._window(w);
-         var o = $.extend({}, pm.defaults, options);
+     pm.send = function(options) {
+         var o = $.extend({}, pm.defaults, options),
+         target = o.target;
+         if (!o.target) {
+             console.warn("postmessage target window required");
+             return;
+         }
+         if (!o.type) {
+             console.warn("postmessage type required");
+             return;
+         }
          var msg = {data:o.data, type:o.type};
          if (o.success) {
              msg.callback = pm._callback(o.success);
@@ -47,25 +36,18 @@
              msg.errback = pm._callback(o.error);
          }
 
-         if (("postMessage" in window) && !o.hash) {
+         if (("postMessage" in target) && !o.hash) {
              pm._bind();
-             win.postMessage(JSON.stringify(msg), o.origin || '*');
+             target.postMessage(JSON.stringify(msg), o.origin || '*');
          }
          else {
              pm.hash._bind();
-             pm.hash.send(win, o, msg);
+             pm.hash.send(o, msg);
          }
      };
 
 
-     pm.bind = function(w, type, fn, origin, hash) {
-         // TODO: assert w === window
-         // you can only bind to current window
-         var win = pm._window(w);
-         if (win !== window) {
-             console.warn("postmessage bind only allowed on current window");
-             return;
-         }
+     pm.bind = function(type, fn, origin, hash) {
          if (("postMessage" in window) && !hash) {
              pm._bind();
          }
@@ -85,12 +67,7 @@
          fns.push({fn:fn, origin:origin || pm.origin});
      };
 
-     pm.unbind = function(w, type, fn) {
-         var win = pm._window(w);
-         if (win !== window) {
-             console.warn("postmessage unbind only allowed on current window");
-             return;
-         }
+     pm.unbind = function(type, fn) {
          var l = $(document).data("listeners.postmessage");
          if (l) {
              if (type) {
@@ -122,21 +99,14 @@
       * default options
       */
      pm.defaults = {
-         type: null,
-         data: null,
-         success: null,
-         error: null,
-         origin: "*"
-     };
-
-     pm._window = function(w) {
-         // if w is an iframe try to get contentWindow if we have access, otherwise, return w
-         try {
-             return w.contentWindow || w;
-         }
-         catch(ex) {
-             return w;
-         }
+         target: null,  /* target window (required) */
+         url: null,     /* target window url (required if no window.postMessage or hash == true) */
+         type: null,    /* message type (required) */
+         data: null,    /* message data (required) */
+         success: null, /* success callback (optional) */
+         error: null,   /* error callback (optional) */
+         origin: "*",   /* postmessage origin (optional) */
+         hash: false    /* use location hash for message passing (optional) */
      };
 
      pm._CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
@@ -180,17 +150,17 @@
              var msg = JSON.parse(e.data);
          }
          catch (ex) {
-             console.error("postmessage data invalid json: ", ex);
+             console.warn("postmessage data invalid json: ", ex);
              return;
          }
 
          if (!msg.type) {
-             console.error("postmessage message type required");
+             console.warn("postmessage message type required");
              return;
          }
 
-         var cbs = $(document).data("callbacks.postmessage") || {};
-         var cb = cbs[msg.type];
+         var cbs = $(document).data("callbacks.postmessage") || {},
+         cb = cbs[msg.type];
          if (cb) {
              cb(msg.data);
          }
@@ -206,20 +176,20 @@
                                     message: "postmessage origin mismatch",
                                     origin: [e.origin, o.origin]
                                 };
-                                pm.send(e.source, {data: error, type: msg.errback});
+                                pm.send({target:e.source, data: error, type: msg.errback});
                             }
                             return;
                         }
                         try {
                             var r = o.fn(msg.data);
                             if (msg.callback) {
-                                pm.send(e.source, {data: r, type: msg.callback});
+                                pm.send({target:e.source, data: r, type: msg.callback});
                             }
                         }
                         catch (ex) {
                             if (msg.errback) {
                                 // notify post message errback
-                                pm.send(e.source, {data: ex, type: msg.errback});
+                                pm.send({target:e.source, data: ex, type: msg.errback});
                             }
                         }
                     });
@@ -228,16 +198,17 @@
 
      pm.hash = {
 
-         send: function(target_window, options, msg) {
+         send: function(options, msg) {
              //console.log("hash.send", target_window, options, msg);
-             var target_url = options.url;
+             var target_window = options.target,
+             target_url = options.url;
              if (!target_url) {
                  console.warn("postmessage target window url is required");
                  return;
              }
              target_url = pm.hash._url(target_url);
-             var source_url = pm.hash._url(window.location.href);
-             var source_window = null;
+             var source_window,
+             source_url = pm.hash._url(window.location.href);
 
              if (window == target_window.parent) {
                  source_window = "parent";
@@ -319,9 +290,9 @@
                  return;
              }
 
-             var msg = hash.postmessage;
-             var cbs = $(document).data("callbacks.postmessage") || {};
-             var cb = cbs[msg.type];
+             var msg = hash.postmessage,
+             cbs = $(document).data("callbacks.postmessage") || {},
+             cb = cbs[msg.type];
              if (cb) {
                  cb(msg.data);
              }
@@ -347,7 +318,7 @@
                                             message: "postmessage origin mismatch",
                                             origin: [origin, o.origin]
                                         };
-                                        $.postmessage.send(source_window, {data: error, type: msg.errback, hash:true, url:hash.source.url});
+                                        $.postmessage({target: source_window, data: error, type: msg.errback, hash:true, url:hash.source.url});
                                     }
                                     return;
                                 }
@@ -355,13 +326,13 @@
                             try {
                                 var r = o.fn(msg.data);
                                 if (msg.callback) {
-                                    $.postmessage.send(source_window, {data: r, type: msg.callback, hash:true, url:hash.source.url});
+                                    $.postmessage({target:source_window, data: r, type: msg.callback, hash:true, url:hash.source.url});
                                 }
                             }
                             catch (ex) {
                                 if (msg.errback) {
                                     // notify post message errback
-                                    $.postmessage.send(source_window, {data: ex, type: msg.errback, hash:true, url:hash.source.url});
+                                    $.postmessage({target:source_window, data: ex, type: msg.errback, hash:true, url:hash.source.url});
                                 }
                             }
                         });
