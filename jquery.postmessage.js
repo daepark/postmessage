@@ -37,7 +37,7 @@
       * }
       */
      pm.send = function(w, options) {
-         var win = w.contentWindow || w;
+         var win = pm._window(w);
          var o = $.extend({}, pm.defaults, options);
          var msg = {data:o.data, type:o.type};
          if (o.success) {
@@ -61,7 +61,7 @@
      pm.bind = function(w, type, fn, origin, hash) {
          // TODO: assert w === window
          // you can only bind to current window
-         var win = w.contentWindow || w;
+         var win = pm._window(w);
          if (win !== window) {
              console.warn("postmessage bind only allowed on current window");
              return;
@@ -86,7 +86,7 @@
      };
 
      pm.unbind = function(w, type, fn) {
-         var win = w.contentWindow || w;
+         var win = pm._window(w);
          if (win !== window) {
              console.warn("postmessage unbind only allowed on current window");
              return;
@@ -127,6 +127,16 @@
          success: null,
          error: null,
          origin: "*"
+     };
+
+     pm._window = function(w) {
+         // if w is an iframe try to get contentWindow if we have access, otherwise, return w
+         try {
+             return w.contentWindow || w;
+         }
+         catch(ex) {
+             return w;
+         }
      };
 
      pm._CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
@@ -216,13 +226,6 @@
          }
      };
 
-     pm.log = function(msg) {
-         $(function() {
-               $(document.body).append("<pre>POSTMESSAGE LOG: "+msg+"</pre>");
-           });
-     };
-
-
      pm.hash = {
 
          send: function(target_window, options, msg) {
@@ -240,7 +243,12 @@
                  source_window = "parent";
              }
              else {
-                 source_window = window.frameElement ? window.frameElement.name : window.name;
+                 $.each(parent.frames, function(i,n) {
+                            if (n == window) {
+                                source_window = i;
+                                return false;
+                            }
+                        });
              }
 
              if (source_window == null) {
@@ -260,6 +268,7 @@
              //pm.hash._bind(window);
 
              var hash_id = "#x-postmessage-id=" + pm._random();
+
              target_window.location = target_url + hash_id + encodeURIComponent(JSON.stringify(hashmessage));
          },
 
@@ -270,7 +279,6 @@
              // are we already listening to message events on this w?
              if ($(document).data("polling.postmessage") !=  1) {
                  $(document).data("polling.postmessage", 1);
-                 //$.postmessage.log("polling.postmessage START");
 
                  setInterval(function() {
                                  var hash = "" + window.location.hash;
@@ -287,7 +295,7 @@
 
              }
              else {
-                 //$.postmessage.log("polling.postmessage ALREADY STARTED");
+
              }
          },
 
