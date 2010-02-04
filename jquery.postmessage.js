@@ -223,12 +223,19 @@ THE SOFTWARE.
                  source_window = "parent";
              }
              else {
+               try {
                  $.each(parent.frames, function(i,n) {
                             if (n == window) {
                                 source_window = i;
                                 return false;
                             }
                         });
+               }
+               catch(ex) {
+                 // Opera: security error trying to access parent.frames x-origin
+                 // juse use window.name
+                 source_window = window.name;
+               }
              }
              if (source_window == null) {
                  console.warn("postmessage windows must be direct parent/child windows and the child must be available through the parent window.frames list");
