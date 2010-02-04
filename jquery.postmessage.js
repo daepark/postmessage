@@ -25,7 +25,7 @@
      $.postmessage.origin = null;
 
      var pm = {
-         
+
          send: function(options) {
              var o = $.extend({}, pm.defaults, options),
                  target = o.target;
@@ -53,7 +53,6 @@
                  pm.hash.send(o, msg);
              }
          },
-
 
          bind: function(type, fn, origin, hash) {
              if (("postMessage" in window) && !hash) {
@@ -162,20 +161,20 @@
                                         message: "postmessage origin mismatch",
                                         origin: [e.origin, o.origin]
                                     };
-                                    pm.send({target:e.source, data: error, type: msg.errback});
+                                    pm.send({target:e.source, data:error, type:msg.errback});
                                 }
                                 return;
                             }
                             try {
                                 var r = o.fn(msg.data);
                                 if (msg.callback) {
-                                    pm.send({target:e.source, data: r, type: msg.callback});
+                                    pm.send({target:e.source, data:r, type:msg.callback});
                                 }
                             }
                             catch (ex) {
                                 if (msg.errback) {
                                     // notify post message errback
-                                    pm.send({target:e.source, data: ex, type: msg.errback});
+                                    pm.send({target:e.source, data:ex, type:msg.errback});
                                 }
                             }
                         });
@@ -289,7 +288,7 @@
                                             message: "postmessage origin mismatch",
                                             origin: [origin, o.origin]
                                         };
-                                        $.postmessage({target: source_window, data: error, type: msg.errback, hash:true, url:hash.source.url});
+                                        pm.send({target:source_window, data:error, type:msg.errback, hash:true, url:hash.source.url});
                                     }
                                     return;
                                 }
@@ -297,13 +296,13 @@
                             try {
                                 var r = o.fn(msg.data);
                                 if (msg.callback) {
-                                    $.postmessage({target:source_window, data: r, type: msg.callback, hash:true, url:hash.source.url});
+                                    pm.send({target:source_window, data:r, type:msg.callback, hash:true, url:hash.source.url});
                                 }
                             }
                             catch (ex) {
                                 if (msg.errback) {
                                     // notify post message errback
-                                    $.postmessage({target:source_window, data: ex, type: msg.errback, hash:true, url:hash.source.url});
+                                    pm.send({target:source_window, data:ex, type:msg.errback, hash:true, url:hash.source.url});
                                 }
                             }
                         });
