@@ -1,26 +1,26 @@
 /**
-The MIT License
+ The MIT License
 
-Copyright (c) 2010 Daniel Park (http://freebase.com, http://postmessage.freebaseapps.com)
+ Copyright (c) 2010 Daniel Park (http://freebase.com, http://postmessage.freebaseapps.com)
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-**/
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ **/
 (function($) {
 
      if (!("console" in window)) {
@@ -33,25 +33,32 @@ THE SOFTWARE.
          return this;
      };
 
+     // send postmessage
      $.pm = $.postmessage = function(options) {
          pm.send(options);
      };
 
+     // bind postmessage handler
      $.postmessage.bind = function(type, fn, origin, hash) {
          pm.bind(type, fn, origin, hash);
      };
 
+     // unbind postmessage handler
      $.postmessage.unbind = function(type, fn) {
          pm.unbind(type, fn);
      };
 
+     // default postmessage origin on bind
      $.postmessage.origin = null;
+
+     // default postmessage polling if using location hash to pass postmessages
+     $.postmessage.poll = 200;
 
      var pm = {
 
          send: function(options) {
              var o = $.extend({}, pm.defaults, options),
-                 target = o.target;
+             target = o.target;
              if (!o.target) {
                  console.warn("postmessage target window required");
                  return;
@@ -168,7 +175,7 @@ THE SOFTWARE.
                  return;
              }
              var cbs = $(document).data("callbacks.postmessage") || {},
-                 cb = cbs[msg.type];
+             cb = cbs[msg.type];
              if (cb) {
                  cb(msg.data);
              }
@@ -211,31 +218,31 @@ THE SOFTWARE.
          send: function(options, msg) {
              //console.log("hash.send", target_window, options, msg);
              var target_window = options.target,
-                 target_url = options.url;
+             target_url = options.url;
              if (!target_url) {
                  console.warn("postmessage target window url is required");
                  return;
              }
              target_url = pm.hash._url(target_url);
              var source_window,
-                 source_url = pm.hash._url(window.location.href);
+             source_url = pm.hash._url(window.location.href);
              if (window == target_window.parent) {
                  source_window = "parent";
              }
              else {
-               try {
-                 $.each(parent.frames, function(i,n) {
-                            if (n == window) {
-                                source_window = i;
-                                return false;
-                            }
-                        });
-               }
-               catch(ex) {
-                 // Opera: security error trying to access parent.frames x-origin
-                 // juse use window.name
-                 source_window = window.name;
-               }
+                 try {
+                     $.each(parent.frames, function(i,n) {
+                                if (n == window) {
+                                    source_window = i;
+                                    return false;
+                                }
+                            });
+                 }
+                 catch(ex) {
+                     // Opera: security error trying to access parent.frames x-origin
+                     // juse use window.name
+                     source_window = window.name;
+                 }
              }
              if (source_window == null) {
                  console.warn("postmessage windows must be direct parent/child windows and the child must be available through the parent window.frames list");
@@ -262,7 +269,7 @@ THE SOFTWARE.
              if (!$(document).data("polling.postmessage")) {
                  setInterval(function() {
                                  var hash = "" + window.location.hash,
-                                     m = pm.hash._regex.exec(hash);
+                                 m = pm.hash._regex.exec(hash);
                                  if (m) {
                                      var id = m[1];
                                      if (pm.hash._last !== id) {
@@ -270,7 +277,7 @@ THE SOFTWARE.
                                          pm.hash._dispatch(hash.substring(pm.hash._regex_len));
                                      }
                                  }
-                             }, 200);
+                             }, $.postmessage.poll || 200);
                  $(document).data("polling.postmessage", 1);
              }
          },
@@ -292,8 +299,8 @@ THE SOFTWARE.
                  return;
              }
              var msg = hash.postmessage,
-                 cbs = $(document).data("callbacks.postmessage") || {},
-                 cb = cbs[msg.type];
+             cbs = $(document).data("callbacks.postmessage") || {},
+             cb = cbs[msg.type];
              if (cb) {
                  cb(msg.data);
              }
@@ -336,7 +343,7 @@ THE SOFTWARE.
                                 }
                             }
                         });
-               }
+             }
          },
 
          _url: function(url) {
@@ -347,19 +354,19 @@ THE SOFTWARE.
      };
 
      $.extend(pm, {
-         defaults: {
-             target: null,  /* target window (required) */
-             url: null,     /* target window url (required if no window.postMessage or hash == true) */
-             type: null,    /* message type (required) */
-             data: null,    /* message data (required) */
-             success: null, /* success callback (optional) */
-             error: null,   /* error callback (optional) */
-             origin: "*",   /* postmessage origin (optional) */
-             hash: false    /* use location hash for message passing (optional) */
-         }
-     });
+                  defaults: {
+                      target: null,  /* target window (required) */
+                      url: null,     /* target window url (required if no window.postMessage or hash == true) */
+                      type: null,    /* message type (required) */
+                      data: null,    /* message data (required) */
+                      success: null, /* success callback (optional) */
+                      error: null,   /* error callback (optional) */
+                      origin: "*",   /* postmessage origin (optional) */
+                      hash: false    /* use location hash for message passing (optional) */
+                  }
+              });
 
-})(jQuery);
+ })(jQuery);
 
 /**
  * http://www.JSON.org/json2.js
