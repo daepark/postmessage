@@ -1,5 +1,6 @@
 jQuery postmessage plugin
 =========================
+
 Modern browsers now support cross-window/cross-domain/cross-origin messaging
 through window.postMessage.
 
@@ -94,7 +95,7 @@ $.postmessage.bind(type, fn, [origin], [hash])
                     {
                         "message": "postmessage origin mismatch",
                         "origin": [
-                            "http://postmessage.freebaseapps.com",
+                            "http://www.abc.com",
                             "http://www.xyz.com"
                         ]
                     }
@@ -122,3 +123,8 @@ $.postmessage.unbind([type], [fn])
 
         fn:Function (Optional)
                 The function that is to be no longer executed.
+
+
+For examples and more:
+======================
+http://postmessage.freebaseapps.com
