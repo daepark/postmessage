@@ -1,7 +1,7 @@
 /**
  The MIT License
 
- Copyright (c) 2010 Daniel Park (http://freebase.com, http://postmessage.freebaseapps.com)
+ Copyright (c) 2010 Daniel Park (http://metaweb.com, http://postmessage.freebaseapps.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
