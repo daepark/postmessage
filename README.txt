@@ -1,4 +1,4 @@
-jQuery postmessage plugin
+window postmessage plugin
 =========================
 
 Modern browsers now support cross-window/cross-domain/cross-origin messaging
@@ -23,8 +23,8 @@ IE8, IE7 and Opera 10.10.
 API
 ===
 
-$.postmessage(options)
-----------------------
+pm(options)
+-----------
         Send postmessage.
 
         options:Map (Required)
@@ -72,8 +72,8 @@ $.postmessage(options)
                         window location hash by setting this to true.
 
 
-$.postmessage.bind(type, fn, [origin], [hash])
-----------------------------------------------
+pm.bind(type, fn, [origin], [hash])
+-----------------------------------
         Bind postmessage handler on the current window.
 
         type:String (Required)
@@ -103,7 +103,7 @@ $.postmessage.bind(type, fn, [origin], [hash])
                 You can set this globally. However, the origin specified in 
                 the bind method will take precedence.
 
-                    $.postmessage.origin = "http://www.xyz.com";
+                    pm.origin = "http://www.xyz.com";
 
         hash:Boolean (Optional)
                 You can force location hash polling to check for postmessages 
@@ -111,8 +111,8 @@ $.postmessage.bind(type, fn, [origin], [hash])
                 (forcefully) passing postmessages via the location hash.
 
 
-$.postmessage.unbind([type], [fn])
----------------------------
+pm.unbind([type], [fn])
+-----------------------
         Remove a previously-attached postmessage handler from the current 
         window. If type is not specified, all postmessage handlers will be 
         removed.
