@@ -146,7 +146,9 @@
                  }
                  else {
                      // unbind all listeners of all type
-                     l = {};
+                     for (var i in l) {
+                       delete l[i];
+                     }
                  }
              }
          },
