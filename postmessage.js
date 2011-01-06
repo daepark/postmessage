@@ -21,6 +21,7 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  **/
+var NO_JQUERY = {};
 (function(window, $, undefined) {
 
      if (!("console" in window)) {
@@ -28,7 +29,7 @@
          c.log = c.warn = c.error = c.debug = function(){};
      }
 
-     if (!$) {
+     if ($ === NO_JQUERY) {
          // jQuery is optional
          $ = {
              fn: {},
@@ -405,7 +406,7 @@
                   }
               });
 
- })(this, typeof jQuery === "undefined" ? null : jQuery);
+ })(this, typeof jQuery === "undefined" ? NO_JQUERY : jQuery);
 
 /**
  * http://www.JSON.org/json2.js
