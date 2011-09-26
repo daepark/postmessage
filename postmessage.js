@@ -108,26 +108,14 @@ var NO_JQUERY = {};
          },
 
          bind: function(type, fn, origin, hash) {
-             if (("postMessage" in window) && !hash) {
-                 pm._bind();
-             }
-             else {
-                 pm.hash._bind();
-             }
-             var l = pm.data("listeners.postmessage");
-             if (!l) {
-                 l = {};
-                 pm.data("listeners.postmessage", l);
-             }
-             var fns = l[type];
-             if (!fns) {
-                 fns = [];
-                 l[type] = fns;
-             }
-             fns.push({fn:fn, callback: false, origin:origin || $.pm.origin});
+           pm._replyBind ( type, fn, origin, hash, false );
          },
          
          bind_c: function(type, fn, origin, hash) {
+           pm._replyBind ( type, fn, origin, hash, true );
+         },
+       
+         _replyBind: function(type, fn, origin, hash, isCallback) {
            if (("postMessage" in window) && !hash) {
                pm._bind();
            }
@@ -144,8 +132,8 @@ var NO_JQUERY = {};
                fns = [];
                l[type] = fns;
            }
-           fns.push({fn:fn, callback: true, origin:origin || $.pm.origin});
-       },
+           fns.push({fn:fn, callback: isCallback, origin:origin || $.pm.origin});
+         },
 
          unbind: function(type, fn) {
              var l = pm.data("listeners.postmessage");
