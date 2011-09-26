@@ -62,7 +62,7 @@ var NO_JQUERY = {};
      };
      
      // bind postmessage with callback reply
-     $.om.bind_c = window.pm.bind_c = function(type, fn, origin, hash) {
+     $.pm.bind_c = window.pm.bind_c = function(type, fn, origin, hash) {
        pm.bind_c(type, fn, origin, hash);
      }
 
