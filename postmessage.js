@@ -60,6 +60,11 @@ var NO_JQUERY = {};
      $.pm.bind = window.pm.bind = function(type, fn, origin, hash) {
          pm.bind(type, fn, origin, hash);
      };
+     
+     // bind postmessage with callback reply
+     $.om.bind_c = window.pm.bind_c = function(type, fn, origin, hash) {
+       pm.bind_c(type, fn, origin, hash);
+     }
 
      // unbind postmessage handler
      $.pm.unbind = window.pm.unbind = function(type, fn) {
@@ -119,8 +124,28 @@ var NO_JQUERY = {};
                  fns = [];
                  l[type] = fns;
              }
-             fns.push({fn:fn, origin:origin || $.pm.origin});
+             fns.push({fn:fn, callback: false, origin:origin || $.pm.origin});
          },
+         
+         bind_c: function(type, fn, origin, hash) {
+           if (("postMessage" in window) && !hash) {
+               pm._bind();
+           }
+           else {
+               pm.hash._bind();
+           }
+           var l = pm.data("listeners.postmessage");
+           if (!l) {
+               l = {};
+               pm.data("listeners.postmessage", l);
+           }
+           var fns = l[type];
+           if (!fns) {
+               fns = [];
+               l[type] = fns;
+           }
+           fns.push({fn:fn, callback: true, origin:origin || $.pm.origin});
+       },
 
          unbind: function(type, fn) {
              var l = pm.data("listeners.postmessage");
@@ -234,9 +259,16 @@ var NO_JQUERY = {};
                          continue;
                      }
                      try {
-                         var r = o.fn(msg.data);
-                         if (msg.callback) {
-                             pm.send({target:e.source, data:r, type:msg.callback});
+                         function sendReply ( data ) {
+                           if (msg.callback) {
+                               pm.send({target:e.source, data:data, type:msg.callback});
+                           }
+                         }
+                         
+                         if ( o.callback ) {
+                           o.fn(msg.data, sendReply);
+                         } else {
+                           sendReply ( o.fn(msg.data) );
                          }
                      }
                      catch (ex) {
@@ -371,9 +403,16 @@ var NO_JQUERY = {};
                          }
                      }
                      try {
-                         var r = o.fn(msg.data);
-                         if (msg.callback) {
-                             pm.send({target:source_window, data:r, type:msg.callback, hash:true, url:hash.source.url});
+                         function sendReply ( data ) {
+                           if (msg.callback) {
+                             pm.send({target:source_window, data:data, type:msg.callback, hash:true, url:hash.source.url});
+                           }
+                         }
+                         
+                         if ( o.callback ) {
+                           o.fn(msg.data, sendReply);
+                         } else {
+                           sendReply ( o.fn(msg.data) );
                          }
                      }
                      catch (ex) {
