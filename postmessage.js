@@ -221,7 +221,7 @@ var NO_JQUERY = {};
                  var fns = l[msg.type] || [];
                  for (var i=0,len=fns.length; i<len; i++) {
                      var o = fns[i];
-                     if (o.origin && e.origin !== o.origin) {
+                     if (o.origin && o.origin != '*' && e.origin !== o.origin) {
                          console.warn("postmessage message origin mismatch", e.origin, o.origin);
                          if (msg.errback) {
                              // notify post message errback
