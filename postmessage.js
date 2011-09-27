@@ -254,9 +254,9 @@ var NO_JQUERY = {};
                          }
                          
                          if ( o.callback ) {
-                           o.fn(msg.data, sendReply);
+                           o.fn(msg.data, sendReply, e);
                          } else {
-                           sendReply ( o.fn(msg.data) );
+                           sendReply ( o.fn(msg.data, e) );
                          }
                      }
                      catch (ex) {
