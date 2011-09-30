@@ -246,24 +246,16 @@ var NO_JQUERY = {};
                          }
                          continue;
                      }
-                     try {
-                         function sendReply ( data ) {
-                           if (msg.callback) {
-                               pm.send({target:e.source, data:data, type:msg.callback});
-                           }
-                         }
-                         
-                         if ( o.callback ) {
-                           o.fn(msg.data, sendReply, e);
-                         } else {
-                           sendReply ( o.fn(msg.data, e) );
-                         }
+                     function sendReply ( data ) {
+                       if (msg.callback) {
+                           pm.send({target:e.source, data:data, type:msg.callback});
+                       }
                      }
-                     catch (ex) {
-                         if (msg.errback) {
-                             // notify post message errback
-                             pm.send({target:e.source, data:ex, type:msg.errback});
-                         }
+                     
+                     if ( o.callback ) {
+                       o.fn(msg.data, sendReply, e);
+                     } else {
+                       sendReply ( o.fn(msg.data, e) );
                      }
                  };
              }
@@ -390,24 +382,16 @@ var NO_JQUERY = {};
                              continue;
                          }
                      }
-                     try {
-                         function sendReply ( data ) {
-                           if (msg.callback) {
-                             pm.send({target:source_window, data:data, type:msg.callback, hash:true, url:hash.source.url});
-                           }
-                         }
-                         
-                         if ( o.callback ) {
-                           o.fn(msg.data, sendReply);
-                         } else {
-                           sendReply ( o.fn(msg.data) );
-                         }
+                     function sendReply ( data ) {
+                       if (msg.callback) {
+                         pm.send({target:source_window, data:data, type:msg.callback, hash:true, url:hash.source.url});
+                       }
                      }
-                     catch (ex) {
-                         if (msg.errback) {
-                             // notify post message errback
-                             pm.send({target:source_window, data:ex, type:msg.errback, hash:true, url:hash.source.url});
-                         }
+                     
+                     if ( o.callback ) {
+                       o.fn(msg.data, sendReply);
+                     } else {
+                       sendReply ( o.fn(msg.data) );
                      }
                  };
              }
