@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <title>postmessage Test Suite</title>
+    <link rel="stylesheet" href="qunit.css" type="text/css" media="screen">
+    <script type="text/javascript" src="qunit.js"></script>    
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+    <script type="text/javascript" src="../postmessage.js"></script>    
+    <script type="text/javascript" src="test.js"></script>
+    <script type="text/javascript">
+      /**
+       * This works with iframe.html
+       * change base_url and target_url (iframe.html) to suit your needs (webserver/address).
+       */
+      var base_url = "http://127.0.0.1"
+      $(function() {
+        // same origin
+        bind("", null, base_url);
+        bind("#-", true, base_url);
+      });
+    </script>
+    <style>
+      body {margin:0;padding:0;}
+      iframe {border:0;width:100%;height:100%;}
+    </style>
+  </head>
+  <body>
+    <iframe id="iframe" src="iframe.html" name="iframe" frameborder="0"></iframe>
+  </body>
+</html>
