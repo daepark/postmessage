@@ -1,0 +1,36 @@
+<html>
+  <!--
+    Cross origin postmessage tests.
+    This test-x.html works with iframe-x.html so just place the entire test/ directory under your webserver and
+    adjust the "origin" and "target_url" in test.html and iframe.html.
+
+    By default, text-x.html is served from http://127.0.0.1
+    and iframe-x.html is served from http://localhost.
+    Even though they resolve to the same thing, technically they are different origins.
+  //!-->
+  <head>
+    <title>postmessge Test Suite</title>
+    <link rel="stylesheet" href="qunit.css" type="text/css" media="screen">
+    <script type="text/javascript" src="qunit.js"></script>    
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+    <script type="text/javascript" src="../postmessage.js"></script>    
+    <script type="text/javascript" src="test.js"></script>
+    <script type="text/javascript">
+      // change origin to where iframe-x.html is served from.
+      // REMEMBER to change the <iframe src>
+      var origin = "http://localhost";
+      $(function() {
+        // cross-origin
+        bind("x-", null, origin);
+        bind("#x-", true, origin);
+      });
+    </script>
+    <style>
+      body {margin:0;padding:0;}
+      iframe {border:0;width:100%;height:100%;}
+    </style>
+  </head>
+  <body>
+    <iframe id="iframe" src="http://localhost/~daepark/postmessage/test/iframe-x.html" name="iframe" frameborder="0"></iframe>    
+  </body>
+</html>

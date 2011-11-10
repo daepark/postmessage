@@ -234,7 +234,7 @@ var NO_JQUERY = {};
                  var fns = l[msg.type] || [];
                  for (var i=0,len=fns.length; i<len; i++) {
                      var o = fns[i];
-                     if (o.origin && o.origin != '*' && e.origin !== o.origin) {
+                     if (o.origin && o.origin !== '*' && e.origin !== o.origin) {
                          console.warn("postmessage message origin mismatch", e.origin, o.origin);
                          if (msg.errback) {
                              // notify post message errback
@@ -369,7 +369,7 @@ var NO_JQUERY = {};
                      var o = fns[i];
                      if (o.origin) {
                          var origin = /https?\:\/\/[^\/]*/.exec(hash.source.url)[0];
-                         if (origin !== o.origin) {
+                         if (o.origin !== '*' && origin !== o.origin) {
                              console.warn("postmessage message origin mismatch", origin, o.origin);
                              if (msg.errback) {
                                  // notify post message errback

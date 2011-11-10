@@ -1,0 +1,32 @@
+<html>
+  <!--
+    Same origin postmessage tests.
+    This test.html works with iframe.html so just place the entire test/ directory under your webserver and
+    adjust the "origin" and "target_url" in test.html and iframe.html.
+  //!-->
+  <head>
+    <title>postmessage Test Suite</title>
+    <link rel="stylesheet" href="qunit.css" type="text/css" media="screen">
+    <script type="text/javascript" src="qunit.js"></script>    
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+    <script type="text/javascript" src="../postmessage.js"></script>    
+    <script type="text/javascript" src="test.js"></script>
+    <script type="text/javascript">
+      // change origin to where iframe.html is served from.
+      // REMEMBER to change the <iframe src>
+      var origin = "http://127.0.0.1"
+      $(function() {
+        // same origin
+        bind("", null, origin);
+        bind("#-", true, origin);
+      });
+    </script>
+    <style>
+      body {margin:0;padding:0;}
+      iframe {border:0;width:100%;height:100%;}
+    </style>
+  </head>
+  <body>
+    <iframe id="iframe" src="http://127.0.0.1/~daepark/postmessage/test/iframe.html" name="iframe" frameborder="0"></iframe>
+  </body>
+</html>

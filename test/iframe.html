@@ -1,0 +1,32 @@
+<html>
+  <head>
+    <title>postmessage Test Suite</title>
+    <link rel="stylesheet" href="qunit.css" tfype="text/css" media="screen">
+    <script type="text/javascript" src="qunit.js"></script>    
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+    <script type="text/javascript" src="../postmessage.js"></script>
+    <script type="text/javascript" src="test.js"></script>
+    <script type="text/javascript">
+      // change target_url to where test.html is served from
+      var target_url = "http://127.0.0.1/~daepark/postmessage/test/test.html";
+      $(function() {
+        module("postmessage");
+        send(window.parent, "", false, target_url);
+        
+        module("postmessage.hash");
+        send(window.parent, "#-", true, target_url);
+      });
+    </script>  
+    <style>
+      body {margin:0;padding:0;}
+      iframe {border:0;width:100%;height:50%;}
+    </style>    
+  </head>
+  <body>
+    <h1 id="qunit-header">postmessage Test Suite: same origin</h1>
+    <h2 id="qunit-banner"></h2>
+    <div id="qunit-testrunner-toolbar"></div>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>    
+  </body>
+</html>
