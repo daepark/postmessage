@@ -57,14 +57,9 @@ var NO_JQUERY = {};
      };
 
      // bind postmessage handler
-     $.pm.bind = window.pm.bind = function(type, fn, origin, hash) {
-         pm.bind(type, fn, origin, hash);
+     $.pm.bind = window.pm.bind = function(type, fn, origin, hash, async_reply) {
+         pm.bind(type, fn, origin, hash, async_reply === true);
      };
-     
-     // bind postmessage with callback reply
-     $.pm.bind_c = window.pm.bind_c = function(type, fn, origin, hash) {
-       pm.bind_c(type, fn, origin, hash);
-     }
 
      // unbind postmessage handler
      $.pm.unbind = window.pm.unbind = function(type, fn) {
@@ -107,12 +102,8 @@ var NO_JQUERY = {};
              }
          },
 
-         bind: function(type, fn, origin, hash) {
-           pm._replyBind ( type, fn, origin, hash, false );
-         },
-         
-         bind_c: function(type, fn, origin, hash) {
-           pm._replyBind ( type, fn, origin, hash, true );
+         bind: function(type, fn, origin, hash, async_reply) {
+           pm._replyBind ( type, fn, origin, hash, async_reply );
          },
        
          _replyBind: function(type, fn, origin, hash, isCallback) {
