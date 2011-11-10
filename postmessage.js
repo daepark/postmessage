@@ -57,8 +57,8 @@ var NO_JQUERY = {};
      };
 
      // bind postmessage handler
-     $.pm.bind = window.pm.bind = function(type, fn, origin, hash) {
-         pm.bind(type, fn, origin, hash);
+     $.pm.bind = window.pm.bind = function(type, fn, origin, hash, async_reply) {
+         pm.bind(type, fn, origin, hash, async_reply === true);
      };
 
      // unbind postmessage handler
@@ -102,24 +102,28 @@ var NO_JQUERY = {};
              }
          },
 
-         bind: function(type, fn, origin, hash) {
-             if (("postMessage" in window) && !hash) {
-                 pm._bind();
-             }
-             else {
-                 pm.hash._bind();
-             }
-             var l = pm.data("listeners.postmessage");
-             if (!l) {
-                 l = {};
-                 pm.data("listeners.postmessage", l);
-             }
-             var fns = l[type];
-             if (!fns) {
-                 fns = [];
-                 l[type] = fns;
-             }
-             fns.push({fn:fn, origin:origin || $.pm.origin});
+         bind: function(type, fn, origin, hash, async_reply) {
+           pm._replyBind ( type, fn, origin, hash, async_reply );
+         },
+       
+         _replyBind: function(type, fn, origin, hash, isCallback) {
+           if (("postMessage" in window) && !hash) {
+               pm._bind();
+           }
+           else {
+               pm.hash._bind();
+           }
+           var l = pm.data("listeners.postmessage");
+           if (!l) {
+               l = {};
+               pm.data("listeners.postmessage", l);
+           }
+           var fns = l[type];
+           if (!fns) {
+               fns = [];
+               l[type] = fns;
+           }
+           fns.push({fn:fn, callback: isCallback, origin:origin || $.pm.origin});
          },
 
          unbind: function(type, fn) {
@@ -233,16 +237,26 @@ var NO_JQUERY = {};
                          }
                          continue;
                      }
+
+                     function sendReply ( data ) {
+                       if (msg.callback) {
+                           pm.send({target:e.source, data:data, type:msg.callback});
+                       }
+                     }
+                     
                      try {
-                         var r = o.fn(msg.data);
-                         if (msg.callback) {
-                             pm.send({target:e.source, data:r, type:msg.callback});
+                         if ( o.callback ) {
+                           o.fn(msg.data, sendReply, e);
+                         } else {
+                           sendReply ( o.fn(msg.data, e) );
                          }
                      }
                      catch (ex) {
                          if (msg.errback) {
                              // notify post message errback
                              pm.send({target:e.source, data:ex, type:msg.errback});
+                         } else {
+                             throw ex;
                          }
                      }
                  };
@@ -370,16 +384,26 @@ var NO_JQUERY = {};
                              continue;
                          }
                      }
+
+                     function sendReply ( data ) {
+                       if (msg.callback) {
+                         pm.send({target:source_window, data:data, type:msg.callback, hash:true, url:hash.source.url});
+                       }
+                     }
+                     
                      try {
-                         var r = o.fn(msg.data);
-                         if (msg.callback) {
-                             pm.send({target:source_window, data:r, type:msg.callback, hash:true, url:hash.source.url});
+                         if ( o.callback ) {
+                           o.fn(msg.data, sendReply);
+                         } else {
+                           sendReply ( o.fn(msg.data) );
                          }
                      }
                      catch (ex) {
                          if (msg.errback) {
                              // notify post message errback
                              pm.send({target:source_window, data:ex, type:msg.errback, hash:true, url:hash.source.url});
+                         } else {
+                             throw ex;
                          }
                      }
                  };
