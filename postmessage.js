@@ -237,16 +237,24 @@ var NO_JQUERY = {};
                          }
                          continue;
                      }
-                     function sendReply ( data ) {
-                       if (msg.callback) {
-                           pm.send({target:e.source, data:data, type:msg.callback});
-                       }
+                     try {
+                         function sendReply ( data ) {
+                           if (msg.callback) {
+                               pm.send({target:e.source, data:data, type:msg.callback});
+                           }
+                         }
+                         
+                         if ( o.callback ) {
+                           o.fn(msg.data, sendReply, e);
+                         } else {
+                           sendReply ( o.fn(msg.data, e) );
+                         }
                      }
-                     
-                     if ( o.callback ) {
-                       o.fn(msg.data, sendReply, e);
-                     } else {
-                       sendReply ( o.fn(msg.data, e) );
+                     catch (ex) {
+                         if (msg.errback) {
+                             // notify post message errback
+                             pm.send({target:e.source, data:ex, type:msg.errback});
+                         }
                      }
                  };
              }
@@ -373,16 +381,24 @@ var NO_JQUERY = {};
                              continue;
                          }
                      }
-                     function sendReply ( data ) {
-                       if (msg.callback) {
-                         pm.send({target:source_window, data:data, type:msg.callback, hash:true, url:hash.source.url});
-                       }
+                     try {
+                         function sendReply ( data ) {
+                           if (msg.callback) {
+                             pm.send({target:source_window, data:data, type:msg.callback, hash:true, url:hash.source.url});
+                           }
+                         }
+                         
+                         if ( o.callback ) {
+                           o.fn(msg.data, sendReply);
+                         } else {
+                           sendReply ( o.fn(msg.data) );
+                         }
                      }
-                     
-                     if ( o.callback ) {
-                       o.fn(msg.data, sendReply);
-                     } else {
-                       sendReply ( o.fn(msg.data) );
+                     catch (ex) {
+                         if (msg.errback) {
+                             // notify post message errback
+                             pm.send({target:source_window, data:ex, type:msg.errback, hash:true, url:hash.source.url});
+                         }
                      }
                  };
              }
