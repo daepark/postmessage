@@ -1,0 +1,15 @@
+{
+    "author": "daepark",
+    "name": "postmessage",
+    "version": "1.0.0",
+    "homepage": "http://http://postmessage.freebaseapps.com//",
+    "licenses": {
+    },
+    "bugs": "https://github.com/daepark/postmessage/issues",
+    "repository": {
+    "type": "git",
+        "url": "git@github.com:daepark/postmessage.git"
+},
+    "dependencies": {},
+    "devDependencies": {}
+}
