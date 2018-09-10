@@ -196,8 +196,8 @@
                 return;
             }
             if (msg === null || !msg.type) {
-              // console.warn("postmessage message type required");
-              return;
+                // console.warn("postmessage message type required");
+                return;
             }
             var cbs = pm.data("callbacks.postmessage") || {},
             cb = cbs[msg.type];
