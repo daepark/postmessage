@@ -1,5 +1,6 @@
-window postmessage plugin
-=========================
+# postmessage
+
+## Introduction
 
 Modern browsers now support cross-window/cross-domain/cross-origin messaging
 through window.postMessage.
@@ -19,13 +20,11 @@ success/error callbacks modeled after jQuery.ajax.
 postmessage is tested on Safari 4, WebKit (Nightlies), Chrome 4, Firefox 3,
 IE8, IE7 and Opera 10.10.
 
+## API
 
-API
-===
+### pm(options)
 
-pm(options)
------------
-        Send postmessage.
+Send postmessage.
 
         options:Map (Required)
                 A set of key/value pairs that configure the postmessage:
@@ -72,9 +71,9 @@ pm(options)
                         window location hash by setting this to true.
 
 
-pm.bind(type, fn, [origin], [hash])
------------------------------------
-        Bind postmessage handler on the current window.
+### pm.bind(type, fn, [origin], [hash])
+
+Bind postmessage handler on the current window.
 
         type:String (Required)
                 The postmessage type to bind to.
@@ -111,11 +110,11 @@ pm.bind(type, fn, [origin], [hash])
                 (forcefully) passing postmessages via the location hash.
 
 
-pm.unbind([type], [fn])
------------------------
-        Remove a previously-attached postmessage handler from the current 
-        window. If type is not specified, all postmessage handlers will be 
-        removed.
+### pm.unbind([type], [fn])
+
+Remove a previously-attached postmessage handler from the current 
+window. If type is not specified, all postmessage handlers will be 
+removed.
 
         type:String (Optional)
                 The postmessage type to unbind from. If only the type is 
@@ -125,6 +124,6 @@ pm.unbind([type], [fn])
                 The function that is to be no longer executed.
 
 
-For examples and more:
-======================
-http://postmessage.freebaseapps.com
+# See also:
+
+* [Examples and more](http://postmessage.freebaseapps.com).
