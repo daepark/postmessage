@@ -195,9 +195,9 @@
                 // console.warn("postmessage data invalid json: ", ex);
                 return;
             }
-            if (!msg.type) {
-                // console.warn("postmessage message type required");
-                return;
+            if (msg === null || !msg.type) {
+              // console.warn("postmessage message type required");
+              return;
             }
             var cbs = pm.data("callbacks.postmessage") || {},
             cb = cbs[msg.type];
